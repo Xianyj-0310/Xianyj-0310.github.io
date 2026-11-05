@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070916">
+  <title>张涵瑞 · 求婚时刻</title>
+  <style>
+    :root {
+      --night: #050713;
+      --night-soft: #101127;
+      --ivory: #fff7ee;
+      --ivory-dim: rgba(255, 247, 238, 0.7);
+      --gold: #f2cc8a;
+      --gold-bright: #ffe4ae;
+      --rose: #ff87a9;
+      --rose-soft: #ffc2d2;
+      --serif: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", serif;
+      --sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--night);
+    }
+
+    body {
+      color: var(--ivory);
+      font-family: var(--sans);
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--gold-bright);
+      outline-offset: 5px;
+    }
+
+    #app {
+      --mx: 0;
+      --my: 0;
+      position: relative;
+      width: 100%;
+      min-height: 100svh;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 76% 30%, rgba(92, 62, 128, 0.18), transparent 29%),
+        radial-gradient(circle at 23% 65%, rgba(73, 34, 79, 0.18), transparent 35%),
+        linear-gradient(180deg, #030510 0%, #080817 45%, #140b19 100%);
+    }
+
+    #app::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 35%, rgba(2, 3, 10, 0.38) 82%, rgba(2, 3, 10, 0.72) 100%),
+        linear-gradient(180deg, transparent 55%, rgba(4, 4, 11, 0.4));
+    }
+
+    #skyCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .nebula {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(72px);
+      opacity: 0.28;
+      animation: nebula-drift 18s ease-in-out infinite alternate;
+    }
+
+    .nebula-one {
+      width: 48vw;
+      height: 34vw;
+      top: -11vw;
+      right: -8vw;
+      background: rgba(104, 64, 131, 0.32);
+    }
+
+    .nebula-two {
+      width: 38vw;
+      height: 28vw;
+      left: -12vw;
+      bottom: 6vh;
+      background: rgba(100, 41, 67, 0.25);
+      animation-delay: -8s;
+    }
+
+    .moon-wrap {
+      position: absolute;
+      top: 10%;
+      right: 8%;
+      z-index: 1;
+      width: clamp(90px, 10vw, 142px);
+      aspect-ratio: 1;
+      pointer-events: none;
+      transform: translate(var(--moon-x, 0px), var(--moon-y, 0px));
+      transition: transform 1.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .moon-halo {
+      position: absolute;
+      inset: -120%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 234, 196, 0.17) 0%, rgba(255, 219, 178, 0.06) 35%, transparent 70%);
+      animation: moon-breathe 7s ease-in-out infinite;
+    }
+
+    .moon {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 26%, rgba(255, 255, 255, 0.9), transparent 8%),
+        radial-gradient(circle at 31% 34%, rgba(210, 194, 174, 0.34), transparent 9%),
+        radial-gradient(circle at 64% 62%, rgba(195, 172, 151, 0.26), transparent 13%),
+        radial-gradient(circle at 42% 69%, rgba(191, 166, 145, 0.2), transparent 8%),
+        radial-gradient(circle at 35% 31%, #fff5dd 0%, #f3dcba 54%, #d7bb9d 100%);
+      box-shadow:
+        0 0 22px rgba(255, 235, 202, 0.4),
+        0 0 70px rgba(255, 223, 177, 0.17),
+        0 0 150px rgba(255, 211, 160, 0.1);
+    }
+
+    .moon::after {
+      content: "";
+      position: absolute;
+      inset: 6%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 36% 30%, transparent 44%, rgba(118, 91, 91, 0.12) 100%);
+    }
+
+    .landscape {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      width: 100%;
+      height: 42vh;
+      min-height: 230px;
+      pointer-events: none;
+      opacity: 0.95;
+      transform: translateY(var(--land-y, 0px));
+      transition: transform 1.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .landscape svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: max(24px, env(safe-area-inset-top)) clamp(22px, 4vw, 58px) 0;
+      pointer-events: none;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: rgba(255, 247, 238, 0.74);
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(242, 204, 138, 0.36);
+      border-radius: 50%;
+      color: var(--gold-bright);
+      font-family: var(--serif);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      background: rgba(255, 255, 255, 0.025);
+      box-shadow: inset 0 0 18px rgba(255, 222, 164, 0.05);
+    }
+
+    .music-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      color: rgba(255, 247, 238, 0.78);
+      background: rgba(10, 10, 24, 0.42);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      cursor: pointer;
+      pointer-events: auto;
+      transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+    }
+
+    .music-toggle:hover {
+      border-color: rgba(242, 204, 138, 0.52);
+      color: var(--ivory);
+      background: rgba(25, 19, 37, 0.65);
+    }
+
+    .music-icon {
+      display: inline-flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 2px;
+      width: 14px;
+      height: 14px;
+    }
+
+    .music-icon i {
+      display: block;
+      width: 2px;
+      height: 5px;
+      border-radius: 2px;
+      background: currentColor;
+      opacity: 0.66;
+      transition: height 0.25s ease;
+    }
+
+    .music-icon i:nth-child(2) {
+      height: 10px;
+    }
+
+    .music-icon i:nth-child(3) {
+      height: 7px;
+    }
+
+    .music-toggle.is-playing .music-icon i {
+      animation: equalizer 0.8s ease-in-out infinite alternate;
+    }
+
+    .music-toggle.is-playing .music-icon i:nth-child(2) {
+      animation-delay: -0.24s;
+    }
+
+    .music-toggle.is-playing .music-icon i:nth-child(3) {
+      animation-delay: -0.48s;
+    }
+
+    .music-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .hero {
+      position: relative;
+      z-index: 5;
+      width: min(1120px, 100%);
+      min-height: 100svh;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.72fr);
+      align-items: center;
+      gap: clamp(30px, 5vw, 82px);
+      padding: clamp(112px, 14vh, 150px) clamp(24px, 6vw, 72px) clamp(54px, 8vh, 90px);
+      transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.7s ease;
+    }
+
+    .hero-copy {
+      max-width: 640px;
+      animation: reveal-up 1.2s 0.12s both cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      margin: 0 0 26px;
+      color: var(--gold-bright);
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 40px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(242, 204, 138, 0.75));
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(48px, 7.2vw, 92px);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      text-wrap: balance;
+      text-shadow: 0 2px 36px rgba(255, 219, 188, 0.08);
+    }
+
+    h1 em {
+      color: var(--gold-bright);
+      font-style: normal;
+      background: linear-gradient(100deg, #fff8e8 8%, #f2cc8a 42%, #ffead0 68%, #dcae72 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 28px rgba(242, 204, 138, 0.16));
+    }
+
+    .prelude {
+      margin: 30px 0 0;
+      color: var(--ivory-dim);
+      font-family: var(--serif);
+      font-size: clamp(16px, 1.7vw, 20px);
+      line-height: 1.9;
+      letter-spacing: 0.08em;
+    }
+
+    .actions {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 38px;
+      min-height: 66px;
+    }
+
+    .yes-btn,
+    .no-btn {
+      position: relative;
+      min-height: 56px;
+      border-radius: 999px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .yes-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-width: 188px;
+      padding: 0 28px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 231, 196, 0.66);
+      color: #241420;
+      background: linear-gradient(110deg, #ffe8c7 0%, #f3c987 46%, #ffd8d7 100%);
+      box-shadow:
+        0 10px 30px rgba(240, 189, 130, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      transition: transform 0.28s ease, box-shadow 0.28s ease;
+    }
+
+    .yes-btn::before {
+      content: "";
+      position: absolute;
+      inset: -80% auto -80% -45%;
+      width: 40%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.72), transparent);
+      transform: rotate(18deg) translateX(-170%);
+      transition: transform 0.7s ease;
+    }
+
+    .yes-btn:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 16px 40px rgba(240, 189, 130, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .yes-btn:hover::before {
+      transform: rotate(18deg) translateX(430%);
+    }
+
+    .yes-heart {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 auto;
+      background: #4c1d30;
+      clip-path: polygon(50% 93%, 8% 51%, 8% 27%, 27% 9%, 50% 25%, 73% 9%, 92% 27%, 92% 51%);
+    }
+
+    .no-btn {
+      min-width: 156px;
+      padding: 0 24px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: rgba(255, 247, 238, 0.68);
+      background: rgba(255, 255, 255, 0.035);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      transition: transform 0.42s cubic-bezier(0.2, 1.25, 0.4, 1), color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .no-btn:hover {
+      color: rgba(255, 247, 238, 0.92);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .letter-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 3px 0;
+      border: 0;
+      border-bottom: 1px solid rgba(242, 204, 138, 0.24);
+      color: rgba(255, 247, 238, 0.58);
+      background: transparent;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .letter-link:hover {
+      color: var(--gold-bright);
+      border-color: rgba(242, 204, 138, 0.62);
+    }
+
+    .letter-link span {
+      font-size: 14px;
+      transition: transform 0.3s ease;
+    }
+
+    .letter-link:hover span {
+      transform: translate(2px, -2px);
+    }
+
+    .signature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 28px 0 0;
+      color: rgba(255, 247, 238, 0.42);
+      font-size: 9px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+    }
+
+    .signature strong {
+      color: rgba(255, 247, 238, 0.8);
+      font-family: var(--serif);
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.16em;
+    }
+
+    .signature::before,
+    .signature::after {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: rgba(255, 247, 238, 0.16);
+    }
+
+    .hero-art {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 420px;
+      animation: reveal-art 1.6s 0.35s both cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .art-halo {
+      position: absolute;
+      top: 44%;
+      left: 50%;
+      width: min(39vw, 470px);
+      min-width: 330px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background:
+        radial-gradient(circle, rgba(255, 233, 190, 0.13) 0%, rgba(255, 196, 177, 0.06) 31%, transparent 65%);
+      filter: blur(3px);
+      animation: halo-breathe 5.5s ease-in-out infinite;
+    }
+
+    .orbit {
+      position: absolute;
+      top: 44%;
+      left: 50%;
+      width: min(34vw, 400px);
+      min-width: 290px;
+      aspect-ratio: 1;
+      border: 1px solid rgba(242, 204, 138, 0.12);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) rotateX(68deg);
+      box-shadow: 0 0 45px rgba(242, 204, 138, 0.025);
+      pointer-events: none;
+    }
+
+    .orbit::before,
+    .orbit::after {
+      content: "";
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold-bright);
+      box-shadow: 0 0 14px rgba(255, 226, 170, 0.9);
+    }
+
+    .orbit::before {
+      top: 13%;
+      right: 16%;
+    }
+
+    .orbit::after {
+      bottom: 8%;
+      left: 24%;
+      width: 3px;
+      height: 3px;
+    }
+
+    .ring-button {
+      position: relative;
+      z-index: 2;
+      display: block;
+      width: min(30vw, 330px);
+      min-width: 250px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      transform: translateY(-2px);
+      filter: drop-shadow(0 28px 45px rgba(0, 0, 0, 0.28));
+      animation: ring-float 5.5s ease-in-out infinite;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .ring-button:hover .ring-art {
+      transform: scale(1.025) rotate(0.6deg);
+    }
+
+    .ring-art {
+      display: block;
+      width: 100%;
+      height: auto;
+      overflow: visible;
+      transition: transform 0.45s cubic-bezier(0.2, 1, 0.3, 1);
+    }
+
+    .ring-shine {
+      animation: ring-shine 4.2s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .spark-a {
+      animation: sparkle 2.8s 0.2s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .spark-b {
+      animation: sparkle 3.4s 1.1s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .spark-c {
+      animation: sparkle 2.5s 1.8s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .spark-ring {
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      width: 22px;
+      height: 22px;
+      border: 1px solid rgba(255, 226, 170, 0.8);
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .ring-button.is-sparking .spark-ring {
+      animation: spark-ring 0.8s ease-out;
+    }
+
+    .spark-dot {
+      position: absolute;
+      top: 48%;
+      left: 50%;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--gold-bright);
+      box-shadow: 0 0 10px rgba(255, 225, 165, 0.9);
+      pointer-events: none;
+      animation: spark-fly 0.85s ease-out forwards;
+    }
+
+    .ring-hint {
+      position: relative;
+      z-index: 2;
+      margin: 14px 0 0;
+      color: rgba(255, 247, 238, 0.4);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-align: center;
+    }
+
+    .ring-note {
+      position: absolute;
+      bottom: 48px;
+      left: 50%;
+      z-index: 3;
+      width: max-content;
+      max-width: 90vw;
+      margin: 0;
+      padding: 9px 15px;
+      border: 1px solid rgba(242, 204, 138, 0.2);
+      border-radius: 999px;
+      color: rgba(255, 237, 208, 0.88);
+      background: rgba(12, 10, 24, 0.62);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      font-family: var(--serif);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 8px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .ring-note.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .fireflies {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .firefly {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(255, 231, 183, 0.9);
+      box-shadow: 0 0 8px 2px rgba(255, 215, 150, 0.45);
+      opacity: 0;
+      animation: firefly-drift var(--duration) var(--delay) ease-in-out infinite;
+    }
+
+    .petal {
+      position: absolute;
+      top: -8vh;
+      width: 9px;
+      height: 14px;
+      border-radius: 80% 12% 80% 18%;
+      background: linear-gradient(140deg, rgba(255, 181, 200, 0.66), rgba(160, 72, 98, 0.2));
+      opacity: 0.42;
+      filter: blur(0.2px);
+      animation: petal-fall var(--duration) var(--delay) linear infinite;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .cursor-glow {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 4;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(255, 214, 168, 0.055), transparent 67%);
+      transform: translate3d(-50%, -50%, 0) translate3d(var(--gx, 50vw), var(--gy, 50vh), 0);
+      transition: opacity 0.4s ease;
+      opacity: 0;
+    }
+
+    .result {
+      position: absolute;
+      inset: 0;
+      z-index: 24;
+      display: grid;
+      place-items: center;
+      padding: 70px 24px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.9s 0.2s ease, visibility 0.9s 0.2s ease;
+    }
+
+    .result::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 46%, rgba(94, 42, 65, 0.14), transparent 34%),
+        rgba(3, 3, 12, 0.08);
+    }
+
+    .result-content {
+      position: relative;
+      z-index: 2;
+      width: min(760px, 100%);
+      text-align: center;
+      transform: translateY(20px) scale(0.96);
+      opacity: 0;
+      transition: transform 1.05s 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.9s 0.55s ease;
+    }
+
+    .result-kicker {
+      margin: 0 0 18px;
+      color: var(--gold-bright);
+      font-size: 10px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+
+    .result-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(82px, 14vw, 174px);
+      font-weight: 400;
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+      color: #fff9f2;
+      text-shadow:
+        0 0 24px rgba(255, 209, 201, 0.24),
+        0 0 90px rgba(255, 140, 170, 0.2);
+      background: linear-gradient(180deg, #fffdf7 10%, #ffe7c6 52%, #ffb7c9 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .result-copy {
+      margin: 30px auto 0;
+      color: rgba(255, 247, 238, 0.74);
+      font-family: var(--serif);
+      font-size: clamp(15px, 2vw, 19px);
+      line-height: 1.9;
+      letter-spacing: 0.1em;
+    }
+
+    .result-names {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 28px;
+      color: rgba(255, 247, 238, 0.9);
+      font-family: var(--serif);
+      font-size: 17px;
+      letter-spacing: 0.14em;
+    }
+
+    .result-names span {
+      color: var(--rose-soft);
+      font-size: 14px;
+    }
+
+    .result-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 36px;
+    }
+
+    .result-btn {
+      min-height: 48px;
+      padding: 0 21px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: rgba(255, 247, 238, 0.82);
+      background: rgba(16, 12, 27, 0.45);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+    }
+
+    .result-btn:hover {
+      color: var(--ivory);
+      border-color: rgba(242, 204, 138, 0.55);
+      transform: translateY(-2px);
+    }
+
+    .result-btn.primary {
+      color: #2b1723;
+      border-color: rgba(255, 231, 196, 0.6);
+      background: linear-gradient(120deg, #ffe8c7, #f3c987 55%, #ffd8d7);
+    }
+
+    #heartCanvas {
+      position: absolute;
+      inset: 0;
+      z-index: 22;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.55s ease;
+    }
+
+    #app.accepted #heartCanvas {
+      opacity: 1;
+    }
+
+    #app.accepted .hero {
+      opacity: 0;
+      filter: blur(8px);
+      transform: scale(0.97);
+      pointer-events: none;
+    }
+
+    #app.accepted .result {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    #app.accepted .result-content {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    #app.accepted .moon {
+      box-shadow:
+        0 0 32px rgba(255, 235, 202, 0.6),
+        0 0 110px rgba(255, 223, 177, 0.28),
+        0 0 220px rgba(255, 211, 160, 0.16);
+    }
+
+    .click-burst {
+      position: fixed;
+      z-index: 50;
+      width: 18px;
+      height: 18px;
+      border: 1px solid rgba(255, 225, 180, 0.8);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: click-ripple 1s ease-out forwards;
+    }
+
+    .letter-dialog {
+      width: min(560px, calc(100vw - 36px));
+      max-height: min(720px, calc(100svh - 40px));
+      padding: 0;
+      border: 1px solid rgba(242, 204, 138, 0.23);
+      border-radius: 22px;
+      color: var(--ivory);
+      background:
+        linear-gradient(145deg, rgba(28, 21, 38, 0.97), rgba(11, 9, 23, 0.98)),
+        var(--night-soft);
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.62);
+      overflow: auto;
+    }
+
+    .letter-dialog::backdrop {
+      background: rgba(2, 2, 9, 0.76);
+      -webkit-backdrop-filter: blur(9px);
+      backdrop-filter: blur(9px);
+    }
+
+    .letter-inner {
+      position: relative;
+      padding: clamp(34px, 7vw, 58px);
+    }
+
+    .letter-inner::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 1px solid rgba(242, 204, 138, 0.1);
+      border-radius: 15px;
+      pointer-events: none;
+    }
+
+    .letter-close {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      z-index: 2;
+      width: 38px;
+      height: 38px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 50%;
+      color: rgba(255, 247, 238, 0.64);
+      background: rgba(255, 255, 255, 0.035);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .letter-close:hover {
+      color: var(--ivory);
+      border-color: rgba(242, 204, 138, 0.4);
+    }
+
+    .letter-label {
+      margin: 0 0 22px;
+      color: var(--gold-bright);
+      font-size: 9px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+
+    .letter-title {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(31px, 7vw, 46px);
+      font-weight: 400;
+      line-height: 1.25;
+      color: #fff8ee;
+    }
+
+    .letter-body {
+      margin: 27px 0 0;
+      color: rgba(255, 247, 238, 0.71);
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 2.1;
+      letter-spacing: 0.055em;
+    }
+
+    .letter-body p {
+      margin: 0 0 15px;
+    }
+
+    .letter-sign {
+      margin: 28px 0 0;
+      color: rgba(255, 247, 238, 0.86);
+      font-family: var(--serif);
+      font-size: 20px;
+      text-align: right;
+      letter-spacing: 0.12em;
+    }
+
+    .letter-sign small {
+      display: block;
+      margin-top: 5px;
+      color: rgba(255, 247, 238, 0.35);
+      font-family: var(--sans);
+      font-size: 8px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+    }
+
+    .sr-only {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      margin: -1px !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    @keyframes reveal-up {
+      from { opacity: 0; transform: translateY(22px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes reveal-art {
+      from { opacity: 0; transform: translateY(28px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes nebula-drift {
+      from { transform: translate3d(-2%, -1%, 0) scale(0.98); }
+      to { transform: translate3d(4%, 3%, 0) scale(1.08); }
+    }
+
+    @keyframes moon-breathe {
+      0%, 100% { opacity: 0.75; transform: scale(0.96); }
+      50% { opacity: 1; transform: scale(1.04); }
+    }
+
+    @keyframes halo-breathe {
+      0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.94); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+    }
+
+    @keyframes ring-float {
+      0%, 100% { transform: translateY(-1px) rotate(-0.35deg); }
+      50% { transform: translateY(-13px) rotate(0.35deg); }
+    }
+
+    @keyframes ring-shine {
+      0%, 100% { opacity: 0.64; }
+      48% { opacity: 1; }
+      55% { opacity: 0.78; }
+    }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.22; transform: scale(0.7); }
+      45% { opacity: 1; transform: scale(1.16); }
+      60% { opacity: 0.42; transform: scale(0.86); }
+    }
+
+    @keyframes equalizer {
+      from { height: 3px; opacity: 0.45; }
+      to { height: 13px; opacity: 1; }
+    }
+
+    @keyframes firefly-drift {
+      0% { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.5); }
+      28% { opacity: var(--peak); }
+      70% { opacity: 0.24; }
+      100% { opacity: 0; transform: translate3d(var(--drift), -34px, 0) scale(1.1); }
+    }
+
+    @keyframes petal-fall {
+      0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.42; }
+      55% { transform: translate3d(var(--sway), 55vh, 0) rotate(210deg); }
+      100% { transform: translate3d(calc(var(--sway) * -0.5), 112vh, 0) rotate(480deg); opacity: 0; }
+    }
+
+    @keyframes spark-ring {
+      0% { opacity: 0.9; transform: translate(-50%, -50%) scale(0.2); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(11); }
+    }
+
+    @keyframes spark-fly {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.15); }
+    }
+
+    @keyframes click-ripple {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.4); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(16); }
+    }
+
+    @media (max-width: 840px) {
+      .hero {
+        grid-template-columns: 1fr;
+        align-content: center;
+        gap: 6px;
+        padding-top: 98px;
+        padding-bottom: 32px;
+        text-align: center;
+      }
+
+      .hero-copy {
+        max-width: 620px;
+        margin: 0 auto;
+      }
+
+      .eyebrow {
+        margin-bottom: 17px;
+      }
+
+      h1 {
+        font-size: clamp(42px, 10vw, 66px);
+      }
+
+      .prelude {
+        margin-top: 18px;
+      }
+
+      .actions {
+        justify-content: center;
+        margin-top: 25px;
+      }
+
+      .signature {
+        justify-content: center;
+        margin-top: 16px;
+      }
+
+      .hero-art {
+        min-height: 205px;
+        margin-top: 4px;
+      }
+
+      .art-halo,
+      .orbit {
+        top: 44%;
+      }
+
+      .ring-button {
+        width: min(44vw, 205px);
+        min-width: 170px;
+      }
+
+      .ring-hint {
+        margin-top: 2px;
+      }
+
+      .ring-note {
+        bottom: 0;
+      }
+
+      .letter-link {
+        margin-top: 12px;
+      }
+
+      .moon-wrap {
+        top: 12%;
+        right: 6%;
+        opacity: 0.8;
+      }
+
+      .landscape {
+        height: 30vh;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .topbar {
+        padding-top: max(17px, env(safe-area-inset-top));
+      }
+
+      .brand {
+        gap: 8px;
+        letter-spacing: 0.18em;
+        font-size: 8px;
+      }
+
+      .brand > span:last-child {
+        max-width: 122px;
+        overflow: hidden;
+        white-space: nowrap;
+        font-size: 0;
+      }
+
+      .brand > span:last-child::after {
+        content: "张涵瑞 · FOREVER";
+        font-size: 8px;
+        letter-spacing: 0.16em;
+      }
+
+      .brand-mark {
+        width: 30px;
+        height: 30px;
+        font-size: 10px;
+      }
+
+      .music-toggle {
+        min-height: 38px;
+        padding: 0 11px;
+      }
+
+      .music-label {
+        font-size: 10px;
+      }
+
+      .hero {
+        padding-top: 82px;
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .eyebrow {
+        font-size: 9px;
+        letter-spacing: 0.2em;
+      }
+
+      .eyebrow::before {
+        width: 26px;
+      }
+
+      h1 {
+        font-size: clamp(38px, 11.5vw, 52px);
+        line-height: 1.12;
+      }
+
+      .prelude {
+        font-size: 14px;
+        line-height: 1.75;
+        letter-spacing: 0.06em;
+      }
+
+      .actions {
+        gap: 10px;
+        min-height: 58px;
+      }
+
+      .yes-btn,
+      .no-btn {
+        min-height: 50px;
+      }
+
+      .yes-btn {
+        min-width: 158px;
+        padding: 0 21px;
+        font-size: 15px;
+      }
+
+      .no-btn {
+        min-width: 128px;
+        padding: 0 16px;
+        font-size: 12px;
+      }
+
+      .signature {
+        margin-top: 12px;
+      }
+
+      .hero-art {
+        min-height: 178px;
+      }
+
+      .ring-button {
+        width: 170px;
+        min-width: 170px;
+      }
+
+      .orbit {
+        min-width: 250px;
+      }
+
+      .ring-hint {
+        font-size: 9px;
+        letter-spacing: 0.12em;
+      }
+
+      .ring-note {
+        font-size: 11px;
+      }
+
+      .result {
+        padding: 86px 20px 50px;
+      }
+
+      .result-copy {
+        margin-top: 24px;
+        letter-spacing: 0.06em;
+      }
+
+      .result-actions {
+        margin-top: 28px;
+      }
+    }
+
+    @media (max-height: 720px) and (min-width: 841px) {
+      .hero {
+        padding-top: 82px;
+        padding-bottom: 28px;
+      }
+
+      .eyebrow {
+        margin-bottom: 16px;
+      }
+
+      h1 {
+        font-size: clamp(46px, 6vw, 72px);
+      }
+
+      .prelude {
+        margin-top: 17px;
+      }
+
+      .actions {
+        margin-top: 23px;
+      }
+
+      .letter-link {
+        margin-top: 9px;
+      }
+
+      .signature {
+        margin-top: 12px;
+      }
+
+      .hero-art {
+        min-height: 350px;
+      }
+
+      .ring-button {
+        width: min(26vw, 285px);
+      }
+    }
+
+    @media (max-height: 740px) and (max-width: 840px) {
+      .hero {
+        padding-top: 72px;
+        padding-bottom: 14px;
+      }
+
+      .eyebrow {
+        margin-bottom: 10px;
+      }
+
+      h1 {
+        font-size: clamp(34px, 9vw, 45px);
+      }
+
+      .prelude {
+        margin-top: 11px;
+        font-size: 13px;
+      }
+
+      .actions {
+        margin-top: 16px;
+      }
+
+      .letter-link {
+        margin-top: 4px;
+      }
+
+      .signature {
+        margin-top: 7px;
+      }
+
+      .hero-art {
+        min-height: 137px;
+      }
+
+      .ring-button {
+        width: 132px;
+        min-width: 132px;
+      }
+
+      .ring-hint {
+        margin-top: -5px;
+      }
+
+      .ring-note {
+        display: none;
+      }
+    }
+
+    @media (max-height: 620px) and (max-width: 840px) {
+      .hero {
+        padding-top: 58px;
+        padding-bottom: 6px;
+      }
+
+      .eyebrow,
+      .letter-link,
+      .signature,
+      .ring-hint {
+        display: none;
+      }
+
+      h1 {
+        font-size: clamp(30px, 8.2vw, 39px);
+      }
+
+      .prelude {
+        margin-top: 8px;
+        font-size: 12px;
+      }
+
+      .actions {
+        margin-top: 12px;
+        min-height: 48px;
+      }
+
+      .hero-art {
+        min-height: 108px;
+      }
+
+      .ring-button {
+        width: 108px;
+        min-width: 108px;
+      }
+
+      .orbit {
+        min-width: 210px;
+      }
+
+      .result {
+        padding-top: 66px;
+        padding-bottom: 26px;
+      }
+
+      .result-copy {
+        margin-top: 16px;
+        font-size: 13px;
+      }
+
+      .result-names {
+        margin-top: 16px;
+      }
+
+      .result-actions {
+        margin-top: 19px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+
+      .music-toggle.is-playing .music-icon i {
+        animation: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="skyCanvas" aria-hidden="true"></canvas>
+    <div class="nebula nebula-one" aria-hidden="true"></div>
+    <div class="nebula nebula-two" aria-hidden="true"></div>
+
+    <div class="moon-wrap" aria-hidden="true">
+      <div class="moon-halo"></div>
+      <div class="moon"></div>
+    </div>
+
+    <div class="fireflies" id="fireflies" aria-hidden="true"></div>
+
+    <div class="landscape" aria-hidden="true">
+      <svg viewBox="0 0 1440 560" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="hillFar" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#141025" stop-opacity="0.38"/>
+            <stop offset="100%" stop-color="#090814" stop-opacity="0.94"/>
+          </linearGradient>
+          <linearGradient id="hillNear" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0b0916" stop-opacity="0.92"/>
+            <stop offset="100%" stop-color="#03040b" stop-opacity="1"/>
+          </linearGradient>
+          <linearGradient id="roseGarden" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#251020" stop-opacity="0.7"/>
+            <stop offset="100%" stop-color="#080610" stop-opacity="1"/>
+          </linearGradient>
+          <filter id="landGlow">
+            <feGaussianBlur stdDeviation="1.6" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <path d="M0,365 C140,292 253,334 385,305 C544,270 645,334 794,298 C966,256 1085,289 1214,266 C1324,247 1390,257 1440,279 L1440,560 L0,560 Z" fill="url(#hillFar)"/>
+        <path d="M0,431 C115,382 214,424 327,399 C478,365 555,408 692,389 C847,367 945,409 1080,382 C1205,358 1320,390 1440,359 L1440,560 L0,560 Z" fill="#080712" fill-opacity="0.82"/>
+        <path d="M0,478 C147,436 254,467 389,448 C542,426 633,465 757,442 C916,412 1023,455 1155,434 C1271,416 1367,426 1440,402 L1440,560 L0,560 Z" fill="url(#hillNear)"/>
+        <g fill="url(#roseGarden)" filter="url(#landGlow)">
+          <path d="M0,505 C52,478 93,492 127,474 C163,455 194,471 221,451 C246,433 271,443 302,423 C278,466 289,481 265,505 C233,537 184,524 147,544 C104,567 50,546 0,560 Z"/>
+          <path d="M1440,503 C1378,471 1336,491 1298,468 C1257,443 1215,464 1184,438 C1155,414 1117,438 1082,411 C1106,469 1081,483 1124,513 C1161,539 1214,528 1253,548 C1302,574 1368,545 1440,560 Z"/>
+          <path d="M105,500 C92,460 106,430 96,401 C121,427 137,456 126,500 Z" fill-opacity="0.55"/>
+          <path d="M1325,497 C1344,459 1328,426 1341,395 C1314,424 1300,457 1311,503 Z" fill-opacity="0.55"/>
+          <path d="M92,489 C55,472 40,444 14,439 C38,469 58,488 92,489 Z" fill-opacity="0.5"/>
+          <path d="M1350,485 C1384,469 1404,442 1432,437 C1408,468 1384,484 1350,485 Z" fill-opacity="0.5"/>
+        </g>
+        <g fill="#f6c4b1" opacity="0.11">
+          <circle cx="78" cy="471" r="4"/>
+          <circle cx="114" cy="457" r="2.5"/>
+          <circle cx="163" cy="483" r="3"/>
+          <circle cx="1293" cy="468" r="3.5"/>
+          <circle cx="1333" cy="458" r="2.5"/>
+          <circle cx="1378" cy="478" r="4"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="brand" aria-label="张涵瑞求婚时刻">
+        <span class="brand-mark">瑞</span>
+        <span>ZHANG HANRUI · A MOMENT FOR YOU</span>
+      </div>
+      <button class="music-toggle" id="musicToggle" type="button" aria-pressed="false" aria-label="开启背景音乐">
+        <span class="music-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="music-label" id="musicLabel">开启音乐</span>
+      </button>
+    </header>
+
+    <main class="hero" id="hero">
+      <div class="hero-copy" id="heroCopy">
+        <p class="eyebrow">张涵瑞 · 求婚时刻</p>
+        <h1>你愿意，<br><em>成为我的余生吗？</em></h1>
+        <p class="prelude">我把藏了很久的心意，<br>郑重地交给你。</p>
+
+        <div class="actions" aria-label="回答求婚">
+          <button class="yes-btn" id="yesBtn" type="button">
+            <span class="yes-heart" aria-hidden="true"></span>
+            <span>我愿意</span>
+          </button>
+          <button class="no-btn" id="noBtn" type="button">让我再想想</button>
+        </div>
+
+        <button class="letter-link" id="letterBtn" type="button">
+          先读这封情书 <span aria-hidden="true">↗</span>
+        </button>
+
+        <p class="signature"><span>FROM</span><strong>张涵瑞</strong><span>WITH LOVE</span></p>
+      </div>
+
+      <div class="hero-art" aria-label="一枚发光的求婚戒指">
+        <div class="art-halo" aria-hidden="true"></div>
+        <div class="orbit" aria-hidden="true"></div>
+
+        <button class="ring-button" id="ringButton" type="button" aria-label="轻触戒指，让星光回应">
+          <span class="spark-ring" aria-hidden="true"></span>
+          <svg class="ring-art" viewBox="0 0 330 360" role="img" aria-labelledby="ringTitle ringDesc">
+            <title id="ringTitle">一枚闪烁的求婚钻戒</title>
+            <desc id="ringDesc">金色戒环上镶嵌着一颗发光的钻石，周围有细小星光。</desc>
+            <defs>
+              <linearGradient id="goldBand" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#8b5b32"/>
+                <stop offset="19%" stop-color="#f9e2ad"/>
+                <stop offset="42%" stop-color="#c58d4a"/>
+                <stop offset="60%" stop-color="#fff0c8"/>
+                <stop offset="78%" stop-color="#b97736"/>
+                <stop offset="100%" stop-color="#f5d38b"/>
+              </linearGradient>
+              <linearGradient id="goldInner" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#5e391e" stop-opacity="0.75"/>
+                <stop offset="55%" stop-color="#f5d38b"/>
+                <stop offset="100%" stop-color="#8e5c2e" stop-opacity="0.72"/>
+              </linearGradient>
+              <radialGradient id="gemGlow" cx="50%" cy="43%" r="55%">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="23%" stop-color="#f5ffff"/>
+                <stop offset="56%" stop-color="#d8f7ff"/>
+                <stop offset="100%" stop-color="#8ed8f2"/>
+              </radialGradient>
+              <linearGradient id="gemTop" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ffffff"/>
+                <stop offset="47%" stop-color="#e9fcff"/>
+                <stop offset="100%" stop-color="#9ddff2"/>
+              </linearGradient>
+              <linearGradient id="gemSide" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#c8f5ff"/>
+                <stop offset="100%" stop-color="#6ebddc"/>
+              </linearGradient>
+              <linearGradient id="haloGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#fff4d3" stop-opacity="0"/>
+                <stop offset="47%" stop-color="#ffe1a8" stop-opacity="0.13"/>
+                <stop offset="100%" stop-color="#fff4d3" stop-opacity="0"/>
+              </linearGradient>
+              <filter id="softGlow" x="-70%" y="-70%" width="240%" height="240%">
+                <feGaussianBlur stdDeviation="7" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <filter id="gemSpark" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="4" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+
+            <ellipse cx="165" cy="346" rx="104" ry="9" fill="#f5cf8a" opacity="0.08"/>
+            <ellipse cx="165" cy="175" rx="142" ry="181" fill="url(#haloGradient)" opacity="0.4"/>
+
+            <g class="ring-shine" filter="url(#softGlow)">
+              <ellipse cx="165" cy="228" rx="67" ry="87" transform="rotate(-13 165 228)" fill="none" stroke="url(#goldBand)" stroke-width="13"/>
+              <ellipse cx="165" cy="228" rx="67" ry="87" transform="rotate(-13 165 228)" fill="none" stroke="url(#goldInner)" stroke-width="3" opacity="0.8"/>
+              <ellipse cx="166" cy="228" rx="66" ry="86" transform="rotate(-13 166 228)" fill="none" stroke="#fff5d2" stroke-width="1" opacity="0.58"/>
+            </g>
+
+            <g transform="translate(165 75)" filter="url(#gemSpark)">
+              <path d="M-48 5 L0 -29 L48 5 L30 56 L0 91 L-30 56 Z" fill="url(#gemGlow)" opacity="0.18"/>
+              <path d="M-40 4 L0 -24 L40 4 L26 45 L0 75 L-26 45 Z" fill="url(#gemTop)" stroke="#fffdf4" stroke-width="1.8"/>
+              <path d="M-40 4 L0 -24 L40 4 L20 23 L0 10 L-20 23 Z" fill="#ffffff" opacity="0.76"/>
+              <path d="M-40 4 L-20 23 L-26 45 Z" fill="#c9f5ff" opacity="0.84"/>
+              <path d="M40 4 L20 23 L26 45 Z" fill="#83d5ee" opacity="0.75"/>
+              <path d="M-20 23 L0 10 L20 23 L0 75 Z" fill="url(#gemSide)" opacity="0.74"/>
+              <path d="M-26 45 L0 75 L26 45 L0 23 Z" fill="#eaffff" opacity="0.56"/>
+              <path d="M0 -24 L0 75 M-40 4 L40 4 M-20 23 L26 45 M20 23 L-26 45" fill="none" stroke="#ffffff" stroke-width="0.9" opacity="0.55"/>
+              <path d="M-30 55 L0 83 L30 55 L0 69 Z" fill="#f4d9ae" opacity="0.9"/>
+              <path d="M-22 58 L0 78 L22 58" fill="none" stroke="#9f6b3d" stroke-width="3" opacity="0.7"/>
+            </g>
+
+            <g fill="#fff4ce" filter="url(#gemSpark)">
+              <path class="spark-a" d="M161 10 L164 19 L173 22 L164 25 L161 34 L158 25 L149 22 L158 19 Z"/>
+              <path class="spark-b" d="M260 89 L262 95 L268 97 L262 99 L260 105 L258 99 L252 97 L258 95 Z" opacity="0.8"/>
+              <path class="spark-c" d="M82 128 L84 134 L90 136 L84 138 L82 144 L80 138 L74 136 L80 134 Z" opacity="0.75"/>
+              <circle cx="285" cy="181" r="1.7" opacity="0.7"/>
+              <circle cx="46" cy="241" r="1.4" opacity="0.65"/>
+              <circle cx="267" cy="290" r="1.2" opacity="0.48"/>
+            </g>
+          </svg>
+        </button>
+
+        <p class="ring-hint">轻触戒指 · 让星光回应</p>
+        <p class="ring-note" id="ringNote">这枚戒指，只为你准备。</p>
+      </div>
+    </main>
+
+    <canvas id="heartCanvas" aria-hidden="true"></canvas>
+
+    <section class="result" id="result" aria-hidden="true" aria-labelledby="resultTitle">
+      <div class="result-content">
+        <p class="result-kicker">AND THE ANSWER IS</p>
+        <h2 class="result-title" id="resultTitle" tabindex="-1">我愿意</h2>
+        <p class="result-copy">那就说好了。<br>从今以后，朝夕是你，四季也是你。</p>
+        <div class="result-names">张涵瑞 <span aria-hidden="true">×</span> 你</div>
+        <div class="result-actions">
+          <button class="result-btn primary" id="resultLetterBtn" type="button">收下这封情书</button>
+          <button class="result-btn" id="replayBtn" type="button">再看一次</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="sr-only" id="liveRegion" aria-live="polite"></div>
+
+    <dialog class="letter-dialog" id="letterDialog">
+      <div class="letter-inner">
+        <button class="letter-close" id="letterClose" type="button" aria-label="关闭情书">×</button>
+        <p class="letter-label">A LETTER FROM ZHANG HANRUI</p>
+        <h2 class="letter-title">写给我想共度余生的人</h2>
+        <div class="letter-body">
+          <p>亲爱的你：</p>
+          <p>遇见你以后，我才知道，原来普通的日子也会因为一个人而闪闪发光。想和你一起吃很多顿饭，走过很多条路，把每一个平凡的明天都过成值得纪念的今天。</p>
+          <p>我不敢承诺永远没有风雨，但我愿意在每一个风雨里都站在你身边。愿意听你讲琐碎的日常，也愿意陪你完成那些看似遥远的梦。</p>
+          <p>所以今天，我认真地问你：往后的春夏秋冬，能不能都有你？</p>
+        </div>
+        <p class="letter-sign">张涵瑞<small>WITH ALL MY LOVE</small></p>
+      </div>
+    </dialog>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const app = document.getElementById("app");
+      const skyCanvas = document.getElementById("skyCanvas");
+      const skyCtx = skyCanvas.getContext("2d");
+      const heartCanvas = document.getElementById("heartCanvas");
+      const heartCtx = heartCanvas.getContext("2d");
+      const yesBtn = document.getElementById("yesBtn");
+      const noBtn = document.getElementById("noBtn");
+      const replayBtn = document.getElementById("replayBtn");
+      const letterBtn = document.getElementById("letterBtn");
+      const resultLetterBtn = document.getElementById("resultLetterBtn");
+      const letterDialog = document.getElementById("letterDialog");
+      const letterClose = document.getElementById("letterClose");
+      const ringButton = document.getElementById("ringButton");
+      const ringNote = document.getElementById("ringNote");
+      const musicToggle = document.getElementById("musicToggle");
+      const musicLabel = document.getElementById("musicLabel");
+      const liveRegion = document.getElementById("liveRegion");
+      const cursorGlow = document.getElementById("cursorGlow");
+      const fireflies = document.getElementById("fireflies");
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const compactView = window.matchMedia("(max-width: 720px)").matches;
+
+      let viewportWidth = window.innerWidth;
+      let viewportHeight = window.innerHeight;
+      let dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let stars = [];
+      let shootingStar = null;
+      let hearts = [];
+      let accepted = false;
+      let acceptedAt = 0;
+      let lastFrame = performance.now();
+      let noCount = 0;
+      let ringNoteTimer = 0;
+      let audioContext = null;
+      let masterGain = null;
+      let musicTimer = 0;
+      let musicOn = false;
+      let chordIndex = 0;
+
+      const heartPath = new Path2D();
+      heartPath.moveTo(0, 0.92);
+      heartPath.bezierCurveTo(-0.12, 0.78, -0.92, 0.31, -0.92, -0.2);
+      heartPath.bezierCurveTo(-0.92, -0.72, -0.32, -0.93, 0, -0.45);
+      heartPath.bezierCurveTo(0.32, -0.93, 0.92, -0.72, 0.92, -0.2);
+      heartPath.bezierCurveTo(0.92, 0.31, 0.12, 0.78, 0, 0.92);
+      heartPath.closePath();
+
+      const noPhrases = [
+        "让我再想想",
+        "再想一小会儿",
+        "心跳漏了一拍",
+        "答案就在左边呀",
+        "再点就要心动啦",
+        "那就……听你的"
+      ];
+
+      const heartColors = [
+        "#ff87a9",
+        "#ffadc1",
+        "#ffc6d4",
+        "#ffe0e7",
+        "#f4c47f",
+        "#fff0c9"
+      ];
+
+      function resizeCanvases() {
+        viewportWidth = window.innerWidth;
+        viewportHeight = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        [skyCanvas, heartCanvas].forEach((canvas) => {
+          canvas.width = Math.round(viewportWidth * dpr);
+          canvas.height = Math.round(viewportHeight * dpr);
+        });
+
+        skyCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        heartCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        createStars();
+      }
+
+      function createStars() {
+        const density = reduceMotion ? 13000 : 7200;
+        const count = Math.max(70, Math.min(260, Math.round((viewportWidth * viewportHeight) / density)));
+        stars = Array.from({ length: count }, () => ({
+          x: Math.random() * viewportWidth,
+          y: Math.random() * viewportHeight * 0.82,
+          radius: 0.35 + Math.random() * 1.35,
+          alpha: 0.2 + Math.random() * 0.75,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.0004 + Math.random() * 0.0015,
+          warm: Math.random() > 0.72
+        }));
+      }
+
+      function spawnShootingStar() {
+        if (shootingStar || reduceMotion) return;
+        if (Math.random() > 0.004) return;
+        shootingStar = {
+          x: viewportWidth * (0.55 + Math.random() * 0.4),
+          y: viewportHeight * (0.08 + Math.random() * 0.2),
+          vx: -(4.8 + Math.random() * 3.4),
+          vy: 1.7 + Math.random() * 1.7,
+          life: 1,
+          decay: 0.012 + Math.random() * 0.008
+        };
+      }
+
+      function drawSky(time) {
+        skyCtx.clearRect(0, 0, viewportWidth, viewportHeight);
+
+        const wash = skyCtx.createRadialGradient(
+          viewportWidth * 0.72,
+          viewportHeight * 0.25,
+          0,
+          viewportWidth * 0.72,
+          viewportHeight * 0.25,
+          Math.max(viewportWidth, viewportHeight) * 0.65
+        );
+        wash.addColorStop(0, "rgba(80, 54, 105, 0.08)");
+        wash.addColorStop(0.5, "rgba(18, 17, 44, 0.02)");
+        wash.addColorStop(1, "rgba(0, 0, 0, 0)");
+        skyCtx.fillStyle = wash;
+        skyCtx.fillRect(0, 0, viewportWidth, viewportHeight);
+
+        stars.forEach((star) => {
+          const twinkle = 0.65 + Math.sin(time * star.speed + star.phase) * 0.35;
+          skyCtx.beginPath();
+          skyCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          skyCtx.fillStyle = star.warm
+            ? `rgba(255, 230, 190, ${star.alpha * twinkle})`
+            : `rgba(224, 235, 255, ${star.alpha * twinkle})`;
+          skyCtx.fill();
+
+          if (star.radius > 1.1) {
+            skyCtx.beginPath();
+            skyCtx.arc(star.x, star.y, star.radius * 3.2, 0, Math.PI * 2);
+            skyCtx.fillStyle = star.warm
+              ? `rgba(255, 220, 172, ${0.025 * twinkle})`
+              : `rgba(210, 226, 255, ${0.022 * twinkle})`;
+            skyCtx.fill();
+          }
+        });
+
+        spawnShootingStar();
+        if (shootingStar) {
+          const s = shootingStar;
+          const tailX = s.x - s.vx * 15;
+          const tailY = s.y - s.vy * 15;
+          const line = skyCtx.createLinearGradient(s.x, s.y, tailX, tailY);
+          line.addColorStop(0, `rgba(255, 244, 213, ${0.82 * s.life})`);
+          line.addColorStop(0.16, `rgba(255, 226, 188, ${0.38 * s.life})`);
+          line.addColorStop(1, "rgba(255, 226, 188, 0)");
+          skyCtx.strokeStyle = line;
+          skyCtx.lineWidth = 1.25;
+          skyCtx.beginPath();
+          skyCtx.moveTo(s.x, s.y);
+          skyCtx.lineTo(tailX, tailY);
+          skyCtx.stroke();
+
+          s.x += s.vx;
+          s.y += s.vy;
+          s.life -= s.decay;
+          if (s.life <= 0) shootingStar = null;
+        }
+      }
+
+      function createAmbientElements() {
+        const flyCount = compactView ? 12 : 22;
+        for (let i = 0; i < flyCount; i += 1) {
+          const fly = document.createElement("span");
+          fly.className = "firefly";
+          fly.style.left = `${5 + Math.random() * 90}%`;
+          fly.style.top = `${42 + Math.random() * 54}%`;
+          fly.style.setProperty("--duration", `${5 + Math.random() * 6}s`);
+          fly.style.setProperty("--delay", `${-Math.random() * 8}s`);
+          fly.style.setProperty("--drift", `${-30 + Math.random() * 60}px`);
+          fly.style.setProperty("--peak", `${0.25 + Math.random() * 0.55}`);
+          fireflies.appendChild(fly);
+        }
+
+        const petalCount = compactView ? 8 : 15;
+        for (let i = 0; i < petalCount; i += 1) {
+          const petal = document.createElement("span");
+          petal.className = "petal";
+          petal.style.left = `${Math.random() * 100}%`;
+          petal.style.setProperty("--duration", `${12 + Math.random() * 13}s`);
+          petal.style.setProperty("--delay", `${-Math.random() * 20}s`);
+          petal.style.setProperty("--sway", `${-80 + Math.random() * 170}px`);
+          petal.style.transform = `scale(${0.65 + Math.random() * 0.8})`;
+          app.appendChild(petal);
+        }
+      }
+
+      function addHeartParticle(options = {}) {
+        if (hearts.length > 430) return;
+        const size = options.size ?? (12 + Math.random() * 26);
+        hearts.push({
+          x: options.x ?? Math.random() * viewportWidth,
+          y: options.y ?? viewportHeight + size,
+          vx: options.vx ?? (-0.35 + Math.random() * 0.7),
+          vy: options.vy ?? (-0.45 - Math.random() * 1.05),
+          size,
+          rotation: options.rotation ?? (-0.6 + Math.random() * 1.2),
+          spin: options.spin ?? (-0.012 + Math.random() * 0.024),
+          alpha: options.alpha ?? (0.55 + Math.random() * 0.45),
+          fade: options.fade ?? 0,
+          gravity: options.gravity ?? 0,
+          drift: options.drift ?? (0.15 + Math.random() * 0.38),
+          phase: Math.random() * Math.PI * 2,
+          age: 0,
+          life: options.life ?? (6 + Math.random() * 6),
+          color: options.color ?? heartColors[Math.floor(Math.random() * heartColors.length)],
+          glow: options.glow ?? (6 + Math.random() * 11),
+          mode: options.mode ?? "ambient"
+        });
+      }
+
+      function burstHearts(x, y, amount = 130) {
+        const count = reduceMotion ? Math.round(amount * 0.45) : amount;
+        for (let i = 0; i < count; i += 1) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 1.6 + Math.random() * 7.5;
+          addHeartParticle({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 1.25,
+            size: 10 + Math.random() * 36,
+            rotation: Math.random() * Math.PI,
+            spin: (-0.08 + Math.random() * 0.16),
+            alpha: 0.65 + Math.random() * 0.35,
+            fade: 0.013 + Math.random() * 0.014,
+            gravity: 0.024,
+            drift: 0,
+            life: 2.8 + Math.random() * 3.5,
+            glow: 9 + Math.random() * 14,
+            mode: "burst"
+          });
+        }
+      }
+
+      function drawHeartParticles(delta) {
+        heartCtx.clearRect(0, 0, viewportWidth, viewportHeight);
+
+        if (accepted) {
+          const elapsed = performance.now() - acceptedAt;
+          const spawnRate = reduceMotion ? 0.012 : elapsed < 4200 ? 0.24 : 0.07;
+          if (Math.random() < spawnRate) {
+            const edgeBias = Math.random();
+            const x = edgeBias < 0.2
+              ? -20
+              : edgeBias > 0.8
+                ? viewportWidth + 20
+                : Math.random() * viewportWidth;
+            addHeartParticle({
+              x,
+              y: viewportHeight + 20 + Math.random() * 60,
+              vx: x < 0 ? 0.55 : x > viewportWidth ? -0.55 : (-0.25 + Math.random() * 0.5),
+              vy: -(0.5 + Math.random() * 1.25),
+              size: 9 + Math.random() * 30,
+              alpha: 0.4 + Math.random() * 0.48,
+              life: 7 + Math.random() * 6,
+              drift: 0.2 + Math.random() * 0.55
+            });
+          }
+        }
+
+        const dt = Math.max(0.35, Math.min(2.2, delta / 16.67));
+
+        for (let i = hearts.length - 1; i >= 0; i -= 1) {
+          const p = hearts[i];
+          p.age += delta / 1000;
+
+          if (p.mode === "burst") {
+            p.vx *= Math.pow(0.982, dt);
+            p.vy = p.vy * Math.pow(0.986, dt) + p.gravity * dt;
+          } else {
+            p.vy *= Math.pow(0.997, dt);
+            p.vx += Math.sin(p.age * 1.35 + p.phase) * 0.0024 * dt;
+            p.vx *= Math.pow(0.995, dt);
+          }
+
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.rotation += p.spin * dt;
+
+          if (p.fade > 0) p.alpha -= p.fade * dt;
+
+          const outside = p.x < -120 || p.x > viewportWidth + 120 || p.y < -150 || p.y > viewportHeight + 160;
+          if (p.alpha <= 0 || p.age > p.life || outside) {
+            hearts.splice(i, 1);
+            continue;
+          }
+
+          const lifeFade = p.mode === "ambient"
+            ? Math.min(1, p.age * 1.8) * Math.min(1, (p.life - p.age) * 1.1)
+            : 1;
+          const alpha = Math.max(0, p.alpha * lifeFade);
+
+          heartCtx.save();
+          heartCtx.translate(p.x, p.y);
+          heartCtx.rotate(p.rotation);
+          heartCtx.scale(p.size, p.size);
+          heartCtx.globalAlpha = alpha;
+          heartCtx.fillStyle = p.color;
+          heartCtx.shadowColor = p.color;
+          heartCtx.shadowBlur = p.glow;
+          heartCtx.fill(heartPath);
+          heartCtx.restore();
+        }
+      }
+
+      function animate(time) {
+        const delta = time - lastFrame;
+        lastFrame = time;
+        drawSky(time);
+        drawHeartParticles(delta);
+        requestAnimationFrame(animate);
+      }
+
+      function dodgeNoButton() {
+        const isSmall = window.innerWidth <= 560;
+        const rangeX = isSmall ? 26 : 58;
+        const rangeY = isSmall ? 10 : 17;
+        const dx = (Math.random() * 2 - 1) * rangeX;
+        const dy = (Math.random() * 2 - 1) * rangeY;
+        const rotation = (Math.random() * 2 - 1) * 2.4;
+
+        noBtn.style.transform = `translate(${dx}px, ${dy}px) rotate(${rotation}deg)`;
+        noCount += 1;
+        noBtn.textContent = noPhrases[Math.min(noCount, noPhrases.length - 1)];
+        liveRegion.textContent = "没关系，可以慢慢想。我一直在。";
+      }
+
+      function acceptProposal(event) {
+        if (accepted) return;
+        accepted = true;
+        acceptedAt = performance.now();
+        app.classList.add("accepted");
+        document.getElementById("result").setAttribute("aria-hidden", "false");
+        document.getElementById("hero").setAttribute("aria-hidden", "true");
+        document.getElementById("hero").inert = true;
+
+        const rect = yesBtn.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const ripple = document.createElement("span");
+        ripple.className = "click-burst";
+        ripple.style.left = `${x}px`;
+        ripple.style.top = `${y}px`;
+        document.body.appendChild(ripple);
+        window.setTimeout(() => ripple.remove(), 1100);
+
+        burstHearts(x, y, compactView ? 95 : 160);
+        for (let i = 0; i < 5; i += 1) {
+          window.setTimeout(() => {
+            burstHearts(
+              viewportWidth * (0.22 + Math.random() * 0.56),
+              viewportHeight * (0.2 + Math.random() * 0.45),
+              compactView ? 24 : 42
+            );
+          }, 240 + i * 240);
+        }
+
+        liveRegion.textContent = "你答应了！从今以后，朝夕是你，四季也是你。";
+        window.setTimeout(() => resultLetterBtn.focus(), 850);
+        if (navigator.vibrate) navigator.vibrate([26, 45, 38]);
+      }
+
+      function resetProposal() {
+        accepted = false;
+        hearts = [];
+        heartCtx.clearRect(0, 0, viewportWidth, viewportHeight);
+        app.classList.remove("accepted");
+        document.getElementById("result").setAttribute("aria-hidden", "true");
+        document.getElementById("hero").removeAttribute("aria-hidden");
+        document.getElementById("hero").inert = false;
+        noCount = 0;
+        noBtn.textContent = noPhrases[0];
+        noBtn.style.transform = "";
+        liveRegion.textContent = "已重新回到求婚时刻。";
+        window.setTimeout(() => yesBtn.focus(), 200);
+      }
+
+      function openLetter() {
+        if (typeof letterDialog.showModal === "function") {
+          letterDialog.showModal();
+        } else {
+          letterDialog.setAttribute("open", "");
+        }
+        letterClose.focus();
+      }
+
+      function closeLetter() {
+        if (typeof letterDialog.close === "function") {
+          letterDialog.close();
+        } else {
+          letterDialog.removeAttribute("open");
+        }
+        (accepted ? resultLetterBtn : letterBtn).focus();
+      }
+
+      function ringSparkle() {
+        ringButton.classList.remove("is-sparking");
+        void ringButton.offsetWidth;
+        ringButton.classList.add("is-sparking");
+        window.setTimeout(() => ringButton.classList.remove("is-sparking"), 900);
+
+        for (let i = 0; i < 14; i += 1) {
+          const dot = document.createElement("span");
+          dot.className = "spark-dot";
+          const angle = Math.random() * Math.PI * 2;
+          const distance = 30 + Math.random() * 110;
+          dot.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
+          dot.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
+          dot.style.animationDelay = `${Math.random() * 0.08}s`;
+          ringButton.appendChild(dot);
+          window.setTimeout(() => dot.remove(), 1000);
+        }
+
+        ringNote.classList.add("is-visible");
+        window.clearTimeout(ringNoteTimer);
+        ringNoteTimer = window.setTimeout(() => ringNote.classList.remove("is-visible"), 3200);
+        if (navigator.vibrate) navigator.vibrate(18);
+      }
+
+      function setupAudio() {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return false;
+        if (!audioContext) {
+          audioContext = new AudioCtor();
+          masterGain = audioContext.createGain();
+          masterGain.gain.value = 0.0001;
+          masterGain.connect(audioContext.destination);
+        }
+        return true;
+      }
+
+      function playTone(frequency, when, duration, volume, type = "sine") {
+        if (!audioContext || !masterGain) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(frequency, when);
+        gain.gain.setValueAtTime(0.0001, when);
+        gain.gain.exponentialRampToValueAtTime(volume, when + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, when + duration);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(when);
+        osc.stop(when + duration + 0.1);
+      }
+
+      function playChord() {
+        if (!audioContext || !musicOn) return;
+        const chords = [
+          [261.63, 329.63, 392.0, 493.88],
+          [220.0, 261.63, 329.63, 392.0],
+          [174.61, 220.0, 261.63, 349.23],
+          [196.0, 246.94, 293.66, 392.0]
+        ];
+        const melody = [659.25, 523.25, 440.0, 587.33];
+        const now = audioContext.currentTime + 0.06;
+        const chord = chords[chordIndex % chords.length];
+        const lead = melody[chordIndex % melody.length];
+
+        chord.forEach((freq, index) => {
+          playTone(freq, now + index * 0.12, 3.6, 0.025, "sine");
+          playTone(freq * 2, now + 0.12 + index * 0.18, 2.4, 0.006, "triangle");
+        });
+        playTone(lead, now + 0.35, 2.8, 0.018, "sine");
+        playTone(lead * 1.5, now + 1.15, 2.2, 0.008, "sine");
+        chordIndex += 1;
+      }
+
+      function toggleMusic() {
+        if (!setupAudio()) {
+          musicLabel.textContent = "浏览器不支持音频";
+          return;
+        }
+
+        if (!musicOn) {
+          audioContext.resume();
+          musicOn = true;
+          masterGain.gain.cancelScheduledValues(audioContext.currentTime);
+          masterGain.gain.setTargetAtTime(0.8, audioContext.currentTime, 0.35);
+          playChord();
+          musicTimer = window.setInterval(playChord, 3000);
+          musicToggle.classList.add("is-playing");
+          musicToggle.setAttribute("aria-pressed", "true");
+          musicLabel.textContent = "音乐播放中";
+          musicToggle.setAttribute("aria-label", "关闭背景音乐");
+          liveRegion.textContent = "背景音乐已开启。";
+        } else {
+          musicOn = false;
+          window.clearInterval(musicTimer);
+          masterGain.gain.setTargetAtTime(0.0001, audioContext.currentTime, 0.16);
+          musicToggle.classList.remove("is-playing");
+          musicToggle.setAttribute("aria-pressed", "false");
+          musicLabel.textContent = "开启音乐";
+          musicToggle.setAttribute("aria-label", "开启背景音乐");
+          liveRegion.textContent = "背景音乐已关闭。";
+        }
+      }
+
+      noBtn.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "mouse") dodgeNoButton();
+      });
+      noBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        dodgeNoButton();
+      });
+      yesBtn.addEventListener("click", acceptProposal);
+      replayBtn.addEventListener("click", resetProposal);
+      letterBtn.addEventListener("click", openLetter);
+      resultLetterBtn.addEventListener("click", openLetter);
+      letterClose.addEventListener("click", closeLetter);
+      letterDialog.addEventListener("click", (event) => {
+        if (event.target === letterDialog) closeLetter();
+      });
+      ringButton.addEventListener("click", ringSparkle);
+      musicToggle.addEventListener("click", toggleMusic);
+
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && letterDialog.open) closeLetter();
+      });
+
+      window.addEventListener("pointermove", (event) => {
+        if (event.pointerType === "touch") return;
+        const nx = event.clientX / Math.max(viewportWidth, 1) - 0.5;
+        const ny = event.clientY / Math.max(viewportHeight, 1) - 0.5;
+        app.style.setProperty("--moon-x", `${(nx * -13).toFixed(2)}px`);
+        app.style.setProperty("--moon-y", `${(ny * -8).toFixed(2)}px`);
+        app.style.setProperty("--land-y", `${(ny * 4).toFixed(2)}px`);
+        cursorGlow.style.setProperty("--gx", `${event.clientX}px`);
+        cursorGlow.style.setProperty("--gy", `${event.clientY}px`);
+        cursorGlow.style.opacity = "1";
+      });
+
+      document.addEventListener("pointerleave", () => {
+        cursorGlow.style.opacity = "0";
+      });
+
+      window.addEventListener("resize", resizeCanvases);
+
+      resizeCanvases();
+      createAmbientElements();
+      requestAnimationFrame((time) => {
+        lastFrame = time;
+        animate(time);
+      });
+    })();
+  </script>
+</body>
+</html>
